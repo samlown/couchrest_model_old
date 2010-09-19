@@ -4,6 +4,8 @@
   * IMPORTANT: Model's class name key changed from 'couchrest-type' to 'model'
   * Support for configuration module and "model_type_key" option for overriding model's type key
   * Added "mass_assign_any_attribute" configuration option to allow setting anything via the attribute= method.
+  * Dirty Tracking via ActiveModel
+  * ActiveModel Attribute Methods support
 
 * Minor enhancements
   * Fixing find("") issue (thanks epochwolf)

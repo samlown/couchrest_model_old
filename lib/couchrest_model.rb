@@ -32,6 +32,7 @@ require 'bigdecimal/util' # used in typecast
 
 require 'couchrest/model'
 require 'couchrest/model/errors'
+require "couchrest/model/attributes"
 require "couchrest/model/persistence"
 require "couchrest/model/typecast"
 require "couchrest/model/property"
@@ -48,6 +49,7 @@ require "couchrest/model/collection"
 require "couchrest/model/attribute_protection"
 require "couchrest/model/associations"
 require "couchrest/model/configuration"
+require "couchrest/model/dirty"
 
 # Monkey patches applied to couchrest
 require "couchrest/model/support/couchrest"

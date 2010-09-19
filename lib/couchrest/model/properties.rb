@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'set'
 module CouchRest
   module Model
     module Properties
@@ -18,35 +19,7 @@ module CouchRest
         self.class.properties
       end
 
-      # Read the casted value of an attribute defined with a property.
-      #
-      # ==== Returns
-      # Object:: the casted attibutes value.
-      def read_attribute(property)
-        self[find_property!(property).to_s]
-      end
-
-      # Store a casted value in the current instance of an attribute defined
-      # with a property.
-      def write_attribute(property, value)
-        prop = find_property!(property)
-        self[prop.to_s] = prop.is_a?(String) ? value : prop.cast(self, value)
-      end
-
-      # Takes a hash as argument, and applies the values by using writer methods
-      # for each key. It doesn't save the document at the end. Raises a NoMethodError if the corresponding methods are
-      # missing. In case of error, no attributes are changed.    
-      def update_attributes_without_saving(hash)
-        # Remove any protected and update all the rest. Any attributes
-        # which do not have a property will simply be ignored.
-        attrs = remove_protected_attributes(hash)
-        directly_set_attributes(attrs)
-      end
-      alias :attributes= :update_attributes_without_saving
-
-
       private
-      # The following methods should be accessable by the Model::Base Class, but not by anything else!
       
       def apply_all_property_defaults
         return if self.respond_to?(:new?) && (new? == false)
@@ -56,47 +29,12 @@ module CouchRest
         end
       end
 
-      def prepare_all_attributes(doc = {}, options = {})
-        apply_all_property_defaults
-        if options[:directly_set_attributes]
-          directly_set_read_only_attributes(doc)          
-        else
-          remove_protected_attributes(doc)
-        end
-        directly_set_attributes(doc) unless doc.nil?
-      end
 
       def find_property!(property)
         prop = property.is_a?(Property) ? property : self.class.properties.detect {|p| p.to_s == property.to_s}
         raise ArgumentError, "Missing property definition for #{property.to_s}" if prop.nil?
         prop
       end
-
-      def directly_set_attributes(hash)
-        hash.each do |attribute_name, attribute_value|
-          if self.respond_to?("#{attribute_name}=")
-            self.send("#{attribute_name}=", hash.delete(attribute_name))
-          elsif mass_assign_any_attribute # config option
-            self[attribute_name] = attribute_value
-          end
-        end
-      end
-
-      def directly_set_read_only_attributes(hash)
-        property_list = self.properties.map{|p| p.name}
-        hash.each do |attribute_name, attribute_value|
-          next if self.respond_to?("#{attribute_name}=")
-          if property_list.include?(attribute_name)
-            write_attribute(attribute_name, hash.delete(attribute_name))
-          end
-        end
-      end
-      
-      def set_attributes(hash)
-        attrs = remove_protected_attributes(hash)
-        directly_set_attributes(attrs)
-      end
-
 
       module ClassMethods
 
@@ -145,8 +83,7 @@ module CouchRest
               type = [type] # inject as an array
             end
             property = Property.new(name, type, options)
-            create_property_getter(property)
-            create_property_setter(property) unless property.read_only == true
+            create_property_alias(property) if property.alias
             if property.type_class.respond_to?(:validates_casted_model)
               validates_casted_model property.name
             end
@@ -154,49 +91,15 @@ module CouchRest
             property
           end
 
-          # defines the getter for the property (and optional aliases)
-          def create_property_getter(property)
-            # meth = property.name
+          def create_property_alias(property)
             class_eval <<-EOS, __FILE__, __LINE__ + 1
-              def #{property.name}
-                read_attribute('#{property.name}')
+              def #{property.alias.to_s}
+                #{property.name}
               end
             EOS
-
-            if ['boolean', TrueClass.to_s.downcase].include?(property.type.to_s.downcase)
-              class_eval <<-EOS, __FILE__, __LINE__
-                def #{property.name}?
-                  value = read_attribute('#{property.name}')
-                  !(value.nil? || value == false)
-                end
-              EOS
-            end
-
-            if property.alias
-              class_eval <<-EOS, __FILE__, __LINE__ + 1
-                alias #{property.alias.to_sym} #{property.name.to_sym}
-              EOS
-            end
-          end
-
-          # defines the setter for the property (and optional aliases)
-          def create_property_setter(property)
-            property_name = property.name
-            class_eval <<-EOS
-              def #{property_name}=(value)
-                write_attribute('#{property_name}', value)
-              end
-            EOS
-
-            if property.alias
-              class_eval <<-EOS
-                alias #{property.alias.to_sym}= #{property_name.to_sym}=
-              EOS
-            end
           end
 
       end # module ClassMethods
-
     end
   end
 end
