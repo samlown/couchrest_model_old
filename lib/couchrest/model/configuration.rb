@@ -12,7 +12,7 @@ module CouchRest
         add_config :mass_assign_any_attribute
         
         configure do |config|
-          config.model_type_key = 'model2'
+          config.model_type_key = 'couchrest-type'
           config.mass_assign_any_attribute = false
         end
       end
