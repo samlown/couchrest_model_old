@@ -19,8 +19,12 @@ describe 'Attributes' do
    AttrDoc.attributes.should =~ ['two', 'one']
   end
 
-  it '#attributes should have an array of attribute names' do
-   AttrDoc.new.attributes.should =~ ['two', 'one']
+  it '#attributes should not be publically available' do
+   AttrDoc.new.respond_to?(:attributes).should be_false
+  end
+
+  it '#attributes (protected) should have an array of attribute names' do
+   AttrDoc.new.send(:attributes).should =~ ['two', 'one']
   end
 end
 

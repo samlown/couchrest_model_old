@@ -26,9 +26,6 @@ module CouchRest
         super
       end
 
-      def attributes
-        self.class.attributes
-      end
 
       ## Reads the attribute value.
       # Assuming you have a property :title this would be called
@@ -75,6 +72,14 @@ module CouchRest
       end
 
       private
+
+      # Return an array of property names available for this model.
+      # This is private as it does not corrispond to the normal usage
+      # of attributes in ActiveModel, it does not return a Hash 
+      # of key values.
+      def attributes
+        self.class.attributes
+      end
 
       def prepare_all_attributes(doc = {}, options = {})
         apply_all_property_defaults
