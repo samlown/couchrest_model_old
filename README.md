@@ -233,6 +233,24 @@ anonymous classes:
 
 Using this method of anonymous classes will *only* create arrays of objects.
 
+## Property Extras, Notes, and Dirty Tracking
+
+Basic dirty tracking is now included thats in large part to the inclusing of `ActiveModel::AttributeMethods`, it is still in testing however and does not work yet with nested attributes.
+
+*NOTE:* An important side-effect of AttributeMethods to bare in mind is that it uses ruby's `method_missing` method to access the attribute data. Overriding your attribute methods is no longer possible and you need to ensure that attributes you add do not already exist in the proceeding classes, especially the Hash class, CouchRest::Document's parent. For example:
+
+    property :entries,  [String]
+
+would not work as expected as the Hash class already has an `entries` method. To work around this, either use a different name or override the method as follows:
+
+    def entries
+      read_attribute(:entries)
+    end
+
+Don't forget to checkout the AttributeMethods documentation for a few more hidden features:
+
+http://api.rubyonrails.org/classes/ActiveModel/AttributeMethods.html
+
 
 ## Assocations
 
