@@ -65,6 +65,32 @@ module CouchRest
           create_view_method(name)
         end
 
+        # Really simple design function that allows a filter
+        # to be added. Filters are simple functions used when listening
+        # to the _changes feed.
+        #
+        # No methods are created here, the design is simply updated.
+        # See the CouchDB API for more information on how to use this.
+        def filter(name, function)
+          filters = (self.model.design_doc['filters'] ||= {})
+          filters[name.to_s] = function
+        end
+
+        # Create a new Elastic search method. Accepts the following options:
+        #
+        # * :filter_name   - the name of the _changes filter to be created.
+        # * :filter_method - the actual method definition to use.
+        #
+        def elastic(name, opts = {})
+          opts[:filter_name] ||= model.to_s.underscore
+          opts[:filter_method] ||= "function(doc, req) { return doc['#{model.model_type_key}'] == '#{self.model.to_s}'; }")
+          # Create a filter for this model
+          filter(opts[:filter_name], opts[:filter_method])
+          create_elastic_method(name, opts[:filter_name])
+        end
+
+        protected
+
         def create_view_method(name)
           model.class_eval <<-EOS, __FILE__, __LINE__ + 1
             def self.#{name}(opts = {})
@@ -72,6 +98,15 @@ module CouchRest
             end
           EOS
         end
+
+        def create_elastic_method(name, filter_name)
+          model.class_eval <<-EOS, __FILE__, __LINE__ + 1
+            def self.#{name}(opts = {})
+              CouchRest::Model::Designs::Elastic.new(self, opts, '#{name}', '#{filter_name}')
+            end
+          EOS
+        end
+
 
       end
     end
