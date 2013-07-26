@@ -16,13 +16,15 @@ module CouchRest
         # Temporary variable storing the design doc
         attr_accessor :design_doc
 
-        def initialize(model, prefix = nil)
+        def initialize(model, opts = {})
           self.model  = model
-          self.prefix = prefix
+          self.prefix = opts[:prefix]
           self.method = Design.method_name(prefix)
 
           create_model_design_doc_reader
           self.design_doc = model.send(method) || assign_model_design_doc
+
+          self.design_doc.auto_migrate = opts[:auto_migrate] if opts.include?(:auto_migrate)
         end
 
         def disable_auto_update

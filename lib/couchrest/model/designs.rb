@@ -48,7 +48,7 @@ module CouchRest
           # Store ourselves a copy of this design spec incase any other model inherits.
           (@_design_blocks ||= [ ]) << {:args => args, :block => block}
 
-          mapper = DesignMapper.new(self, opts[:prefix])
+          mapper = DesignMapper.new(self, opts)
           mapper.instance_eval(&block) if block_given?
 
           # Create an 'all' view if no prefix and one has not been defined already

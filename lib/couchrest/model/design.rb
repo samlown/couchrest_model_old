@@ -11,6 +11,11 @@ module CouchRest
       # If false, the design will be loaded automatically before a view is executed.
       attr_accessor :auto_update
 
+      # True by default. When false, automatic migrations will be disabled for 
+      # this design document. See the utils/migrate.rb file for more details.
+      # Especially useful for non-essential views that take a long
+      # time to generate.
+      attr_accessor :auto_migrate
 
       # Instantiate a new design document for this model
       def initialize(model, prefix = nil)
@@ -18,6 +23,7 @@ module CouchRest
         self.method_name = self.class.method_name(prefix)
         suffix = prefix ? "_#{prefix}" : ''
         self["_id"] = "_design/#{model.to_s}#{suffix}"
+        self.auto_migrate = true
         apply_defaults
       end
 
