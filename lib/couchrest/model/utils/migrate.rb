@@ -64,6 +64,7 @@ module CouchRest
           callbacks = [ ]
           models.each do |model|
             model.design_docs.each do |design|
+              next if design.stale
               callbacks << migrate_design(model, design, db)
             end
           end

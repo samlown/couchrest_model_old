@@ -65,16 +65,26 @@ describe CouchRest::Model::Design do
       end
     end
 
+    describe "initialisation with stale option" do
+      it "should build a design document with the stale set to false" do
+        @obj.stale.show be_false
+      end
+      it "should allow override to true" do
+        @obj = CouchRest::Model::Design.new(@model, :stale => true)
+        @obj.stale.show be_true
+      end
+    end
+
     describe "initialisation with prefix" do
 
       it "should associate model and set method name" do
-        @obj = CouchRest::Model::Design.new(@model, 'stats')
+        @obj = CouchRest::Model::Design.new(@model, :prefix => 'stats')
         @obj.model.should eql(@model)
         @obj.method_name.should eql("stats_design_doc")
       end
 
       it "should generate correct id with prefix" do
-        @obj = CouchRest::Model::Design.new(@model, 'stats')
+        @obj = CouchRest::Model::Design.new(@model, :prefix => 'stats')
         @obj['_id'].should eql("_design/ModelExample_stats")
       end
 

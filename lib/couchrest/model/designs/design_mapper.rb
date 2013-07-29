@@ -11,20 +11,18 @@ module CouchRest
       class DesignMapper
 
         # Basic mapper attributes
-        attr_accessor :model, :method, :prefix
+        attr_accessor :model, :method, :options
 
         # Temporary variable storing the design doc
         attr_accessor :design_doc
 
         def initialize(model, opts = {})
-          self.model  = model
-          self.prefix = opts[:prefix]
-          self.method = Design.method_name(prefix)
+          self.model   = model
+          self.options = options
+          self.method  = Design.method_name(options[:prefix])
 
           create_model_design_doc_reader
           self.design_doc = model.send(method) || assign_model_design_doc
-
-          self.design_doc.auto_migrate = opts[:auto_migrate] if opts.include?(:auto_migrate)
         end
 
         def disable_auto_update
@@ -65,7 +63,7 @@ module CouchRest
         end
 
         def assign_model_design_doc
-          doc = Design.new(model, prefix)
+          doc = Design.new(model, options)
           model.instance_variable_set("@#{method}", doc)
           model.design_docs << doc
 
